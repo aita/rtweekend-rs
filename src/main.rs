@@ -7,7 +7,19 @@ use image::{ImageBuffer, Rgb, RgbImage};
 mod ray;
 use ray::Ray;
 
+fn hit_sphere(center: DVec3, radius: f64, r: &Ray) -> bool {
+    let oc = r.origin() - center;
+    let a = r.direction().dot(r.direction());
+    let b = 2.0 * oc.dot(r.direction());
+    let c = oc.dot(oc) - radius * radius;
+    let discriminant = b * b - 4.0 * a * c;
+    discriminant > 0.0
+}
+
 fn ray_color(r: &Ray) -> DVec3 {
+    if hit_sphere(DVec3::new(0.0, 0.0, -1.0), 0.5, r) {
+        return DVec3::new(1.0, 0.0, 0.0);
+    }
     let unit_direction = r.direction().normalize();
     let t = 0.5 * (unit_direction.y + 1.0);
     (1.0 - t) * DVec3::new(1.0, 1.0, 1.0) + t * DVec3::new(0.5, 0.7, 1.0)
