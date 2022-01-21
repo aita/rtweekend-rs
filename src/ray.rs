@@ -1,5 +1,3 @@
-extern crate glam;
-
 use glam::DVec3;
 
 pub struct Ray {

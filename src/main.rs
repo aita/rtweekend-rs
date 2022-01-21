@@ -3,32 +3,16 @@ extern crate image;
 
 use glam::DVec3;
 use image::{ImageBuffer, Rgb, RgbImage};
+use tinyraytracer::{HitRecord, Hittable, HittableList, Ray, Sphere};
 
-mod ray;
-use ray::Ray;
-
-fn hit_sphere(center: DVec3, radius: f64, r: &Ray) -> f64 {
-    let oc = r.origin() - center;
-    let a = r.direction().length_squared();
-    let half_b = oc.dot(r.direction());
-    let c = oc.length_squared() - radius * radius;
-    let discriminant = half_b * half_b - a * c;
-    if discriminant < 0.0 {
-        -1.0
-    } else {
-        (-half_b - discriminant.sqrt()) / a
-    }
-}
-
-fn ray_color(r: &Ray) -> DVec3 {
-    let t = hit_sphere(DVec3::new(0.0, 0.0, -1.0), 0.5, r);
-    if t > 0.0 {
-        let n = (r.at(t) - DVec3::new(0.0, 0.0, -1.0)).normalize();
-        return 0.5 * (n + 1.0);
+fn ray_color(r: &Ray, world: &dyn Hittable) -> DVec3 {
+    let mut rec = HitRecord::EMPTY;
+    if world.hit(r, 0.0, f64::INFINITY, &mut rec) {
+        return 0.5 * (rec.normal + DVec3::ONE);
     }
     let unit_direction = r.direction().normalize();
     let t = 0.5 * (unit_direction.y + 1.0);
-    (1.0 - t) * DVec3::new(1.0, 1.0, 1.0) + t * DVec3::new(0.5, 0.7, 1.0)
+    (1.0 - t) * DVec3::ONE + t * DVec3::new(0.5, 0.7, 1.0)
 }
 
 fn rgb_color(pixel_color: &DVec3) -> Rgb<u8> {
@@ -43,11 +27,18 @@ fn main() {
     const WIDTH: u32 = 400;
     const HEIGHT: u32 = ((WIDTH as f64) / ASPECT_RATIO) as u32;
 
+    let world = HittableList {
+        objects: vec![
+            Box::new(Sphere::new(DVec3::new(0.0, 0.0, -1.0), 0.5)),
+            Box::new(Sphere::new(DVec3::new(0.0, -100.5, -1.0), 100.0)),
+        ],
+    };
+
     let viewport_height = 2.0;
     let viewport_width = ASPECT_RATIO * viewport_height;
     let focal_length = 1.0;
 
-    let origin = DVec3::new(0.0, 0.0, 0.0);
+    let origin = DVec3::ZERO;
     let horizontal = DVec3::new(viewport_width, 0.0, 0.0);
     let vertical = DVec3::new(0.0, viewport_height, 0.0);
     let lower_left_corner =
@@ -63,7 +54,7 @@ fn main() {
             lower_left_corner + u * horizontal + v * vertical - origin,
         );
 
-        let pixel_color = ray_color(&ray);
+        let pixel_color = ray_color(&ray, &world);
         *pixel = rgb_color(&pixel_color);
     }
 
