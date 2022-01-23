@@ -14,3 +14,4 @@ path = "src/lib.rs"
 [dependencies]
 image = "0.23.14"
 glam = "0.20.2"
+rand = "0.8.4"

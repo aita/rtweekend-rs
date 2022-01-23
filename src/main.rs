@@ -1,9 +1,11 @@
 extern crate glam;
 extern crate image;
+extern crate rand;
 
 use glam::DVec3;
 use image::{ImageBuffer, Rgb, RgbImage};
-use tinyraytracer::{HitRecord, Hittable, HittableList, Ray, Sphere};
+use rand::{thread_rng, Rng};
+use tinyraytracer::{clamp, Camera, HitRecord, Hittable, HittableList, Ray, Sphere};
 
 fn ray_color(r: &Ray, world: &dyn Hittable) -> DVec3 {
     let mut rec = HitRecord::EMPTY;
@@ -15,17 +17,29 @@ fn ray_color(r: &Ray, world: &dyn Hittable) -> DVec3 {
     (1.0 - t) * DVec3::ONE + t * DVec3::new(0.5, 0.7, 1.0)
 }
 
-fn rgb_color(pixel_color: &DVec3) -> Rgb<u8> {
-    let r = (255.999 * pixel_color.x) as u8;
-    let g = (255.999 * pixel_color.y) as u8;
-    let b = (255.999 * pixel_color.z) as u8;
+fn rgb_color(pixel_color: &DVec3, samples_per_pixel: u32) -> Rgb<u8> {
+    let r = pixel_color.x;
+    let g = pixel_color.y;
+    let b = pixel_color.z;
+
+    let scale = 1.0 / (samples_per_pixel as f64);
+    let r = r * scale;
+    let g = g * scale;
+    let b = b * scale;
+
+    let r = (256.0 * clamp(r, 0.0, 0.999)) as u8;
+    let g = (256.0 * clamp(g, 0.0, 0.999)) as u8;
+    let b = (256.0 * clamp(b, 0.0, 0.999)) as u8;
     Rgb([r, g, b])
 }
 
 fn main() {
+    let mut rng = thread_rng();
+
     const ASPECT_RATIO: f64 = 16.0 / 9.0;
     const WIDTH: u32 = 400;
     const HEIGHT: u32 = ((WIDTH as f64) / ASPECT_RATIO) as u32;
+    const SAMPLES_PER_PIXEL: u32 = 100;
 
     let world = HittableList {
         objects: vec![
@@ -34,28 +48,22 @@ fn main() {
         ],
     };
 
-    let viewport_height = 2.0;
-    let viewport_width = ASPECT_RATIO * viewport_height;
-    let focal_length = 1.0;
-
-    let origin = DVec3::ZERO;
-    let horizontal = DVec3::new(viewport_width, 0.0, 0.0);
-    let vertical = DVec3::new(0.0, viewport_height, 0.0);
-    let lower_left_corner =
-        origin - horizontal / 2.0 - vertical / 2.0 - DVec3::new(0.0, 0.0, focal_length);
+    let camera = Camera::new();
 
     let mut img: RgbImage = ImageBuffer::new(WIDTH, HEIGHT);
-
     for (x, y, pixel) in img.enumerate_pixels_mut() {
-        let u = (x as f64) / (WIDTH as f64 - 1.0);
-        let v = ((HEIGHT - y) as f64) / (HEIGHT as f64 - 1.0);
-        let ray = Ray::new(
-            origin,
-            lower_left_corner + u * horizontal + v * vertical - origin,
-        );
+        let mut pixel_color = DVec3::ZERO;
+        for _s in 0..SAMPLES_PER_PIXEL {
+            let x = x as f64;
+            let y = (HEIGHT - y) as f64;
 
-        let pixel_color = ray_color(&ray, &world);
-        *pixel = rgb_color(&pixel_color);
+            let u = (x + rng.gen_range(0.0..1.0)) / (WIDTH as f64 - 1.0);
+            let v = (y + rng.gen_range(0.0..1.0)) / (HEIGHT as f64 - 1.0);
+
+            let ray = camera.get_ray(u, v);
+            pixel_color += ray_color(&ray, &world);
+        }
+        *pixel = rgb_color(&pixel_color, SAMPLES_PER_PIXEL);
     }
 
     img.save("scene.png").unwrap();
