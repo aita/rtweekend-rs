@@ -30,9 +30,9 @@ fn rgb_color(pixel_color: &DVec3, samples_per_pixel: u32) -> Rgb<u8> {
     let b = pixel_color.z;
 
     let scale = 1.0 / (samples_per_pixel as f64);
-    let r = r * scale;
-    let g = g * scale;
-    let b = b * scale;
+    let r = (r * scale).sqrt();
+    let g = (g * scale).sqrt();
+    let b = (b * scale).sqrt();
 
     let r = (256.0 * clamp(r, 0.0, 0.999)) as u8;
     let g = (256.0 * clamp(g, 0.0, 0.999)) as u8;
