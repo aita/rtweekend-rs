@@ -7,11 +7,18 @@ use image::{ImageBuffer, Rgb, RgbImage};
 use rand::{thread_rng, Rng};
 use tinyraytracer::{clamp, Camera, HitRecord, Hittable, HittableList, Ray, Sphere};
 
-fn ray_color(r: &Ray, world: &dyn Hittable) -> DVec3 {
-    let mut rec = HitRecord::EMPTY;
-    if world.hit(r, 0.0, f64::INFINITY, &mut rec) {
-        return 0.5 * (rec.normal + DVec3::ONE);
+fn ray_color(r: &Ray, world: &dyn Hittable, depth: u32) -> DVec3 {
+    if depth <= 0 {
+        return DVec3::ZERO;
     }
+
+    let mut rec = HitRecord::EMPTY;
+
+    if world.hit(r, 0.0, f64::INFINITY, &mut rec) {
+        let target = rec.p + rec.normal + random_in_unit_sphere();
+        return 0.5 * ray_color(&Ray::new(rec.p, target - rec.p), world, depth - 1);
+    }
+
     let unit_direction = r.direction().normalize();
     let t = 0.5 * (unit_direction.y + 1.0);
     (1.0 - t) * DVec3::ONE + t * DVec3::new(0.5, 0.7, 1.0)
@@ -33,6 +40,20 @@ fn rgb_color(pixel_color: &DVec3, samples_per_pixel: u32) -> Rgb<u8> {
     Rgb([r, g, b])
 }
 
+pub fn random_in_unit_sphere() -> DVec3 {
+    loop {
+        let p = DVec3::new(
+            thread_rng().gen_range(-1.0..1.0),
+            thread_rng().gen_range(-1.0..1.0),
+            thread_rng().gen_range(-1.0..1.0),
+        );
+        if p.length_squared() >= 1.0 {
+            continue;
+        }
+        return p;
+    }
+}
+
 fn main() {
     let mut rng = thread_rng();
 
@@ -40,6 +61,7 @@ fn main() {
     const WIDTH: u32 = 400;
     const HEIGHT: u32 = ((WIDTH as f64) / ASPECT_RATIO) as u32;
     const SAMPLES_PER_PIXEL: u32 = 100;
+    const MAX_DEPTH: u32 = 50;
 
     let world = HittableList {
         objects: vec![
@@ -61,7 +83,7 @@ fn main() {
             let v = (y + rng.gen_range(0.0..1.0)) / (HEIGHT as f64 - 1.0);
 
             let ray = camera.get_ray(u, v);
-            pixel_color += ray_color(&ray, &world);
+            pixel_color += ray_color(&ray, &world, MAX_DEPTH);
         }
         *pixel = rgb_color(&pixel_color, SAMPLES_PER_PIXEL);
     }
