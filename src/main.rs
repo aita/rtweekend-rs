@@ -7,6 +7,20 @@ use image::{ImageBuffer, Rgb, RgbImage};
 use rand::{thread_rng, Rng};
 use tinyraytracer::{clamp, Camera, HitRecord, Hittable, HittableList, Ray, Sphere};
 
+fn random_in_unit_sphere() -> DVec3 {
+    loop {
+        let p = DVec3::new(
+            thread_rng().gen_range(-1.0..1.0),
+            thread_rng().gen_range(-1.0..1.0),
+            thread_rng().gen_range(-1.0..1.0),
+        );
+        if p.length_squared() >= 1.0 {
+            continue;
+        }
+        return p;
+    }
+}
+
 fn ray_color(r: &Ray, world: &dyn Hittable, depth: u32) -> DVec3 {
     if depth <= 0 {
         return DVec3::ZERO;
@@ -38,20 +52,6 @@ fn rgb_color(pixel_color: &DVec3, samples_per_pixel: u32) -> Rgb<u8> {
     let g = (256.0 * clamp(g, 0.0, 0.999)) as u8;
     let b = (256.0 * clamp(b, 0.0, 0.999)) as u8;
     Rgb([r, g, b])
-}
-
-pub fn random_in_unit_sphere() -> DVec3 {
-    loop {
-        let p = DVec3::new(
-            thread_rng().gen_range(-1.0..1.0),
-            thread_rng().gen_range(-1.0..1.0),
-            thread_rng().gen_range(-1.0..1.0),
-        );
-        if p.length_squared() >= 1.0 {
-            continue;
-        }
-        return p;
-    }
 }
 
 fn main() {
