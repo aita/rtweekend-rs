@@ -21,6 +21,15 @@ fn random_in_unit_sphere() -> DVec3 {
     }
 }
 
+fn random_in_hemisphere(normal: DVec3) -> DVec3 {
+    let in_unit_sphere = random_in_unit_sphere();
+    if in_unit_sphere.dot(normal) > 0.0 {
+        in_unit_sphere
+    } else {
+        -in_unit_sphere
+    }
+}
+
 fn ray_color(r: &Ray, world: &dyn Hittable, depth: u32) -> DVec3 {
     if depth <= 0 {
         return DVec3::ZERO;
@@ -29,7 +38,7 @@ fn ray_color(r: &Ray, world: &dyn Hittable, depth: u32) -> DVec3 {
     let mut rec = HitRecord::EMPTY;
 
     if world.hit(r, 0.001, f64::INFINITY, &mut rec) {
-        let target = rec.p + rec.normal + random_in_unit_sphere();
+        let target = rec.p + rec.normal + random_in_hemisphere(rec.normal);
         return 0.5 * ray_color(&Ray::new(rec.p, target - rec.p), world, depth - 1);
     }
 
