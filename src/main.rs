@@ -14,7 +14,7 @@ fn ray_color(r: &Ray, world: &dyn Hittable, depth: u32) -> DVec3 {
 
     let mut rec = HitRecord::EMPTY;
 
-    if world.hit(r, 0.0, f64::INFINITY, &mut rec) {
+    if world.hit(r, 0.001, f64::INFINITY, &mut rec) {
         let target = rec.p + rec.normal + random_in_unit_sphere();
         return 0.5 * ray_color(&Ray::new(rec.p, target - rec.p), world, depth - 1);
     }
