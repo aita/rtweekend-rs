@@ -5,7 +5,7 @@ extern crate rand;
 use glam::DVec3;
 use image::{ImageBuffer, Rgb, RgbImage};
 use rand::{thread_rng, Rng};
-use tinyraytracer::{clamp, Camera, HitRecord, Hittable, HittableList, Ray, Sphere};
+use rtweekend::{clamp, Camera, HitRecord, Hittable, HittableList, Ray, Sphere};
 
 fn random_in_unit_sphere() -> DVec3 {
     loop {

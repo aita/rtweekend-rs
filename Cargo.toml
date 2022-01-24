@@ -1,14 +1,14 @@
 [package]
-name = "tinyraytracer"
+name = "rtweekend"
 version = "0.1.0"
 edition = "2021"
 
 [[bin]]
-name = "tinyraytracer"
+name = "rtweekend"
 path = "src/main.rs"
 
 [lib]
-name = "tinyraytracer"
+name = "rtweekend"
 path = "src/lib.rs"
 
 [dependencies]
