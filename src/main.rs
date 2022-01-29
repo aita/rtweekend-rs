@@ -96,12 +96,20 @@ fn main() {
         ],
     };
 
+    let lookfrom = DVec3::new(3.0, 3.0, 2.0);
+    let lookat = DVec3::new(0.0, 0.0, -1.0);
+    let vup = DVec3::new(0.0, 1.0, 0.0);
+    let dist_to_focus = (lookfrom - lookat).length();
+    let aperture = 2.0;
+
     let camera = Camera::new(
-        DVec3::new(-2.0, 2.0, 1.0),
-        DVec3::new(0.0, 0.0, -1.0),
-        DVec3::new(0.0, 1.0, 0.0),
+        lookfrom,
+        lookat,
+        vup,
         20.0,
         ASPECT_RATIO,
+        aperture,
+        dist_to_focus,
     );
 
     let mut img: RgbImage = ImageBuffer::new(WIDTH, HEIGHT);
