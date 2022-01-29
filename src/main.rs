@@ -2,33 +2,14 @@ extern crate glam;
 extern crate image;
 extern crate rand;
 
+use std::rc::Rc;
+
 use glam::DVec3;
 use image::{ImageBuffer, Rgb, RgbImage};
 use rand::{thread_rng, Rng};
-use rtweekend::{clamp, Camera, HitRecord, Hittable, HittableList, Ray, Sphere};
-
-fn random_in_unit_sphere() -> DVec3 {
-    loop {
-        let p = DVec3::new(
-            thread_rng().gen_range(-1.0..1.0),
-            thread_rng().gen_range(-1.0..1.0),
-            thread_rng().gen_range(-1.0..1.0),
-        );
-        if p.length_squared() >= 1.0 {
-            continue;
-        }
-        return p;
-    }
-}
-
-fn random_in_hemisphere(normal: DVec3) -> DVec3 {
-    let in_unit_sphere = random_in_unit_sphere();
-    if in_unit_sphere.dot(normal) > 0.0 {
-        in_unit_sphere
-    } else {
-        -in_unit_sphere
-    }
-}
+use rtweekend::{
+    clamp, Camera, HitRecord, Hittable, HittableList, Lambertian, Material, Metal, Ray, Sphere,
+};
 
 fn ray_color(r: &Ray, world: &dyn Hittable, depth: u32) -> DVec3 {
     if depth <= 0 {
@@ -36,10 +17,19 @@ fn ray_color(r: &Ray, world: &dyn Hittable, depth: u32) -> DVec3 {
     }
 
     let mut rec = HitRecord::EMPTY;
-
     if world.hit(r, 0.001, f64::INFINITY, &mut rec) {
-        let target = rec.p + rec.normal + random_in_hemisphere(rec.normal);
-        return 0.5 * ray_color(&Ray::new(rec.p, target - rec.p), world, depth - 1);
+        let mut scattered = Ray::new(DVec3::ZERO, DVec3::ZERO);
+        let mut attenuation = DVec3::ZERO;
+        if rec
+            .material
+            .as_ref()
+            .unwrap()
+            .scatter(r, &rec, &mut attenuation, &mut scattered)
+        {
+            return attenuation * ray_color(&scattered, world, depth - 1);
+        } else {
+            return DVec3::ZERO;
+        }
     }
 
     let unit_direction = r.direction().normalize();
@@ -72,10 +62,33 @@ fn main() {
     const SAMPLES_PER_PIXEL: u32 = 100;
     const MAX_DEPTH: u32 = 50;
 
+    let material_ground: Rc<dyn Material> = Rc::new(Lambertian {
+        albedo: DVec3::new(0.8, 0.8, 0.0),
+    });
+    let material_center: Rc<dyn Material> = Rc::new(Lambertian {
+        albedo: DVec3::new(0.7, 0.3, 0.3),
+    });
+    let material_left: Rc<dyn Material> = Rc::new(Metal {
+        albedo: DVec3::new(0.8, 0.8, 0.8),
+    });
+    let material_right: Rc<dyn Material> = Rc::new(Metal {
+        albedo: DVec3::new(0.8, 0.6, 0.2),
+    });
+
     let world = HittableList {
         objects: vec![
-            Box::new(Sphere::new(DVec3::new(0.0, 0.0, -1.0), 0.5)),
-            Box::new(Sphere::new(DVec3::new(0.0, -100.5, -1.0), 100.0)),
+            Box::new(Sphere::new(
+                DVec3::new(0.0, -100.5, -1.0),
+                100.0,
+                material_ground,
+            )),
+            Box::new(Sphere::new(
+                DVec3::new(0.0, 0.0, -1.0),
+                0.5,
+                material_center,
+            )),
+            Box::new(Sphere::new(DVec3::new(-1.0, 0.0, -1.0), 0.5, material_left)),
+            Box::new(Sphere::new(DVec3::new(1.0, 0.0, -1.0), 0.5, material_right)),
         ],
     };
 

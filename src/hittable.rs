@@ -1,9 +1,12 @@
-use crate::Ray;
+use std::rc::Rc;
+
+use crate::{Material, Ray};
 use glam::DVec3;
 
 pub struct HitRecord {
     pub p: DVec3,
     pub normal: DVec3,
+    pub material: Option<Rc<dyn Material>>,
     pub t: f64,
     pub front_face: bool,
 }
@@ -12,6 +15,7 @@ impl HitRecord {
     pub const EMPTY: HitRecord = HitRecord {
         p: DVec3::ZERO,
         normal: DVec3::ZERO,
+        material: None,
         t: 0.0,
         front_face: false,
     };
