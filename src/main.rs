@@ -62,18 +62,10 @@ fn main() {
     const SAMPLES_PER_PIXEL: u32 = 100;
     const MAX_DEPTH: u32 = 50;
 
-    let material_ground: Rc<dyn Material> = Rc::new(Lambertian {
-        albedo: DVec3::new(0.8, 0.8, 0.0),
-    });
-    let material_center: Rc<dyn Material> = Rc::new(Lambertian {
-        albedo: DVec3::new(0.7, 0.3, 0.3),
-    });
-    let material_left: Rc<dyn Material> = Rc::new(Metal {
-        albedo: DVec3::new(0.8, 0.8, 0.8),
-    });
-    let material_right: Rc<dyn Material> = Rc::new(Metal {
-        albedo: DVec3::new(0.8, 0.6, 0.2),
-    });
+    let material_ground: Rc<dyn Material> = Rc::new(Lambertian::new(DVec3::new(0.8, 0.8, 0.0)));
+    let material_center: Rc<dyn Material> = Rc::new(Lambertian::new(DVec3::new(0.7, 0.3, 0.3)));
+    let material_left: Rc<dyn Material> = Rc::new(Metal::new(DVec3::new(0.8, 0.8, 0.8), 0.3));
+    let material_right: Rc<dyn Material> = Rc::new(Metal::new(DVec3::new(0.8, 0.6, 0.2), 1.0));
 
     let world = HittableList {
         objects: vec![

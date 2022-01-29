@@ -1,4 +1,5 @@
 use crate::near_zero;
+use crate::random_in_unit_sphere;
 use crate::random_unit_vector;
 use crate::reflect;
 use crate::HitRecord;
@@ -17,6 +18,12 @@ pub trait Material {
 
 pub struct Lambertian {
     pub albedo: DVec3,
+}
+
+impl Lambertian {
+    pub fn new(albedo: DVec3) -> Lambertian {
+        Lambertian { albedo }
+    }
 }
 
 impl Material for Lambertian {
@@ -42,6 +49,16 @@ impl Material for Lambertian {
 
 pub struct Metal {
     pub albedo: DVec3,
+    pub fuzz: f64,
+}
+
+impl Metal {
+    pub fn new(albedo: DVec3, fuzz: f64) -> Metal {
+        Metal {
+            albedo: albedo,
+            fuzz: fuzz.max(1.0),
+        }
+    }
 }
 
 impl Material for Metal {
@@ -53,7 +70,7 @@ impl Material for Metal {
         scattered: &mut Ray,
     ) -> bool {
         let reflected = reflect(ray.direction().normalize(), rec.normal);
-        *scattered = Ray::new(rec.p, reflected);
+        *scattered = Ray::new(rec.p, reflected + self.fuzz * random_in_unit_sphere());
         *attenuation = self.albedo;
         scattered.direction().dot(rec.normal) > 0.0
     }
