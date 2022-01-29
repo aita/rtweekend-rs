@@ -5,6 +5,7 @@ extern crate rand;
 use glam::DVec3;
 use image::{ImageBuffer, Rgb, RgbImage};
 use rand::{thread_rng, Rng};
+use std::f64::consts::PI;
 use std::rc::Rc;
 
 use rtweekend::*;
@@ -60,29 +61,19 @@ fn main() {
     const SAMPLES_PER_PIXEL: u32 = 100;
     const MAX_DEPTH: u32 = 50;
 
-    let material_ground: Rc<dyn Material> = Rc::new(Lambertian::new(DVec3::new(0.8, 0.8, 0.0)));
-    let material_center: Rc<dyn Material> = Rc::new(Lambertian::new(DVec3::new(0.1, 0.2, 0.5)));
-    let material_left: Rc<dyn Material> = Rc::new(Dielectric::new(1.5));
-    let material_right: Rc<dyn Material> = Rc::new(Metal::new(DVec3::new(0.8, 0.6, 0.2), 1.0));
+    let material_left: Rc<dyn Material> = Rc::new(Lambertian::new(DVec3::new(0.0, 0.0, 1.0)));
+    let material_right: Rc<dyn Material> = Rc::new(Lambertian::new(DVec3::new(1.0, 0.0, 0.0)));
+
+    let r = (PI / 4.0).cos();
 
     let world = HittableList {
         objects: vec![
-            Box::new(Sphere::new(
-                DVec3::new(0.0, -100.5, -1.0),
-                100.0,
-                material_ground,
-            )),
-            Box::new(Sphere::new(
-                DVec3::new(0.0, 0.0, -1.0),
-                0.5,
-                material_center,
-            )),
-            Box::new(Sphere::new(DVec3::new(-1.0, 0.0, -1.0), 0.5, material_left)),
-            Box::new(Sphere::new(DVec3::new(1.0, 0.0, -1.0), 0.5, material_right)),
+            Box::new(Sphere::new(DVec3::new(-r, 0.0, -1.0), r, material_left)),
+            Box::new(Sphere::new(DVec3::new(r, 0.0, -1.0), r, material_right)),
         ],
     };
 
-    let camera = Camera::new();
+    let camera = Camera::new(90.0, ASPECT_RATIO);
 
     let mut img: RgbImage = ImageBuffer::new(WIDTH, HEIGHT);
     for (x, y, pixel) in img.enumerate_pixels_mut() {
@@ -102,3 +93,4 @@ fn main() {
 
     img.save("scene.png").unwrap();
 }
+use rtweekend::*;

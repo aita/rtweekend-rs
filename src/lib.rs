@@ -1,3 +1,7 @@
+use glam::DVec3;
+use rand::{thread_rng, Rng};
+use std::f64::consts::PI;
+
 pub use camera::*;
 pub use hittable::*;
 pub use material::*;
@@ -10,8 +14,9 @@ mod material;
 mod ray;
 mod sphere;
 
-use glam::DVec3;
-use rand::{thread_rng, Rng};
+pub fn degrees_to_radians(degrees: f64) -> f64 {
+    degrees * PI / 180.0
+}
 
 pub fn clamp(x: f64, min: f64, max: f64) -> f64 {
     if x < min {
