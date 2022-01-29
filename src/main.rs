@@ -8,7 +8,8 @@ use glam::DVec3;
 use image::{ImageBuffer, Rgb, RgbImage};
 use rand::{thread_rng, Rng};
 use rtweekend::{
-    clamp, Camera, HitRecord, Hittable, HittableList, Lambertian, Material, Metal, Ray, Sphere,
+    clamp, Camera, Dielectric, HitRecord, Hittable, HittableList, Lambertian, Material, Metal, Ray,
+    Sphere,
 };
 
 fn ray_color(r: &Ray, world: &dyn Hittable, depth: u32) -> DVec3 {
@@ -63,8 +64,8 @@ fn main() {
     const MAX_DEPTH: u32 = 50;
 
     let material_ground: Rc<dyn Material> = Rc::new(Lambertian::new(DVec3::new(0.8, 0.8, 0.0)));
-    let material_center: Rc<dyn Material> = Rc::new(Lambertian::new(DVec3::new(0.7, 0.3, 0.3)));
-    let material_left: Rc<dyn Material> = Rc::new(Metal::new(DVec3::new(0.8, 0.8, 0.8), 0.3));
+    let material_center: Rc<dyn Material> = Rc::new(Lambertian::new(DVec3::new(0.1, 0.2, 0.5)));
+    let material_left: Rc<dyn Material> = Rc::new(Dielectric::new(1.5));
     let material_right: Rc<dyn Material> = Rc::new(Metal::new(DVec3::new(0.8, 0.6, 0.2), 1.0));
 
     let world = HittableList {

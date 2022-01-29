@@ -1,8 +1,8 @@
-pub use camera::Camera;
-pub use hittable::{HitRecord, Hittable, HittableList};
-pub use material::{Lambertian, Material, Metal};
-pub use ray::Ray;
-pub use sphere::Sphere;
+pub use camera::*;
+pub use hittable::*;
+pub use material::*;
+pub use ray::*;
+pub use sphere::*;
 
 mod camera;
 mod hittable;
@@ -49,4 +49,11 @@ pub fn random_unit_vector() -> DVec3 {
 
 pub fn reflect(v: DVec3, n: DVec3) -> DVec3 {
     return v - 2.0 * v.dot(n) * n;
+}
+
+pub fn refract(uv: DVec3, n: DVec3, etai_over_etat: f64) -> DVec3 {
+    let cos_theta = -uv.dot(n).min(1.0);
+    let r_out_perp = etai_over_etat * (uv + cos_theta * n);
+    let r_out_parallel = -(1.0 - r_out_perp.length_squared()).sqrt() * n;
+    return r_out_perp + r_out_parallel;
 }
