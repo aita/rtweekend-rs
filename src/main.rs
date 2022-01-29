@@ -2,15 +2,12 @@ extern crate glam;
 extern crate image;
 extern crate rand;
 
-use std::rc::Rc;
-
 use glam::DVec3;
 use image::{ImageBuffer, Rgb, RgbImage};
 use rand::{thread_rng, Rng};
-use rtweekend::{
-    clamp, Camera, Dielectric, HitRecord, Hittable, HittableList, Lambertian, Material, Metal, Ray,
-    Sphere,
-};
+use std::rc::Rc;
+
+use rtweekend::*;
 
 fn ray_color(r: &Ray, world: &dyn Hittable, depth: u32) -> DVec3 {
     if depth <= 0 {
