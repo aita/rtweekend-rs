@@ -5,7 +5,6 @@ extern crate rand;
 use glam::DVec3;
 use image::{ImageBuffer, Rgb, RgbImage};
 use rand::{thread_rng, Rng};
-use std::f64::consts::PI;
 use std::rc::Rc;
 
 use rtweekend::*;
@@ -130,4 +129,3 @@ fn main() {
 
     img.save("scene.png").unwrap();
 }
-use rtweekend::*;
