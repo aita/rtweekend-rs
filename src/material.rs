@@ -59,7 +59,7 @@ impl Metal {
     pub fn new(albedo: DVec3, fuzz: f64) -> Metal {
         Metal {
             albedo: albedo,
-            fuzz: fuzz.max(1.0),
+            fuzz: fuzz.min(1.0),
         }
     }
 }
