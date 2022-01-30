@@ -1,7 +1,4 @@
-extern crate glam;
-extern crate image;
-extern crate rand;
-
+use clap::Parser;
 use glam::DVec3;
 use image::{ImageBuffer, Rgb, RgbImage};
 use rand::{thread_rng, Rng};
@@ -119,14 +116,30 @@ fn random_scene() -> HittableList {
     world
 }
 
-fn main() {
-    let mut rng = thread_rng();
+#[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None)]
+struct Args {
+    #[clap(short, long, default_value_t = 1200)]
+    width: u32,
 
-    const ASPECT_RATIO: f64 = 3.0 / 2.0;
-    const WIDTH: u32 = 1200;
-    const HEIGHT: u32 = ((WIDTH as f64) / ASPECT_RATIO) as u32;
-    const SAMPLES_PER_PIXEL: u32 = 500;
-    const MAX_DEPTH: u32 = 50;
+    #[clap(short, long, default_value_t = 800)]
+    height: u32,
+
+    #[clap(short, long, default_value_t = 500)]
+    samples_per_pixel: u32,
+
+    #[clap(short, long, default_value_t = 50)]
+    max_depth: u32,
+
+    #[clap(short, long, default_value = "scene.png")]
+    output: String,
+}
+
+fn main() {
+    let args = Args::parse();
+    let aspect_ratio = args.width as f64 / args.height as f64;
+
+    let mut rng = thread_rng();
 
     let world = random_scene();
 
@@ -141,26 +154,26 @@ fn main() {
         lookat,
         vup,
         20.0,
-        ASPECT_RATIO,
+        aspect_ratio,
         aperture,
         dist_to_focus,
     );
 
-    let mut img: RgbImage = ImageBuffer::new(WIDTH, HEIGHT);
+    let mut img: RgbImage = ImageBuffer::new(args.width, args.height);
     for (x, y, pixel) in img.enumerate_pixels_mut() {
         let mut pixel_color = DVec3::ZERO;
-        for _s in 0..SAMPLES_PER_PIXEL {
+        for _s in 0..args.samples_per_pixel {
             let x = x as f64;
-            let y = (HEIGHT - y) as f64;
+            let y = (args.height - y) as f64;
 
-            let u = (x + rng.gen_range(0.0..1.0)) / (WIDTH as f64 - 1.0);
-            let v = (y + rng.gen_range(0.0..1.0)) / (HEIGHT as f64 - 1.0);
+            let u = (x + rng.gen_range(0.0..1.0)) / (args.width as f64 - 1.0);
+            let v = (y + rng.gen_range(0.0..1.0)) / (args.height as f64 - 1.0);
 
             let ray = camera.get_ray(u, v);
-            pixel_color += ray_color(&ray, &world, MAX_DEPTH);
+            pixel_color += ray_color(&ray, &world, args.max_depth);
         }
-        *pixel = rgb_color(&pixel_color, SAMPLES_PER_PIXEL);
+        *pixel = rgb_color(&pixel_color, args.samples_per_pixel);
     }
 
-    img.save("scene.png").unwrap();
+    img.save(args.output).unwrap();
 }
